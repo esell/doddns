@@ -25,3 +25,4 @@ At this point you could set the app to run via cron or whatever.
 ## Gotchas:
 * Currently the default TTL that Digital Ocean gives you is 1800. Of course this is less than ideal for dynamic updates. The current Digital Ocean API does not provide a way to set the TTL 
   on update or addition so you will need to manually set this in their portal. The nice thing is that you only have to set it once, future updates will not reset the TTL you have defined.
+* The update is dependent on DNS cache. If a remote client doesn't honor your TTL you are SOL.
