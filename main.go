@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 )
 
 type IPRecord struct {
@@ -108,7 +109,9 @@ func main() {
 }
 
 func httpReq(method string, URL string, postData []byte) (*http.Response, error) {
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: 20 * time.Second,
+	}
 	req, err := http.NewRequest(method, URL, bytes.NewBuffer(postData))
 	if err != nil {
 		log.Println("Error with building request for "+URL+": ", err)
