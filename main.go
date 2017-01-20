@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -42,39 +43,54 @@ var (
 
 func main() {
 	flag.Parse()
+	var initData sync.WaitGroup
+
 	// Get current public IP
 	if (*subDomain == "") || (*domainName == "") || (*apiKey == "") {
 		log.Println("Must provide a domain, subdomain and api key. Exiting...")
 		os.Exit(1)
 	}
-	currentIP, err := httpReq("GET", "https://api.ipify.org?format=json", nil)
-	contentsIP, err := ioutil.ReadAll(currentIP.Body)
-	if err != nil {
-		log.Println("Error reading response body for current IP: ", err)
-	}
+
 	var currentIPJSON IPRecord
-	err = json.Unmarshal(contentsIP, &currentIPJSON)
-	if err != nil {
-		log.Println("Error decoding JSON for current IP: ", err)
-	}
-	log.Println("Current IP is: ", currentIPJSON.CurrentIP)
-
-	recordListResp, err := httpReq("GET", "https://api.digitalocean.com/v2/domains/"+*domainName+"/records", nil)
-	if err != nil {
-		log.Println("Error getting domain records: ", err)
-	}
-	defer recordListResp.Body.Close()
-
-	contents, err := ioutil.ReadAll(recordListResp.Body)
-	if err != nil {
-		log.Println("Error reading response body for domain records: ", err)
-	}
+	initData.Add(1)
+	go func(currentIPRecord IPRecord) {
+		defer initData.Done()
+		currentIP, err := httpReq("GET", "https://api.ipify.org?format=json", nil)
+		contentsIP, err := ioutil.ReadAll(currentIP.Body)
+		if err != nil {
+			log.Println("Error reading response body for current IP: ", err)
+		}
+		err = json.Unmarshal(contentsIP, &currentIPJSON)
+		if err != nil {
+			log.Println("Error decoding JSON for current IP: ", err)
+			os.Exit(1)
+		}
+		log.Println("Current IP is: ", currentIPJSON.CurrentIP)
+	}(currentIPJSON)
 
 	var m DomainRecords
-	err = json.Unmarshal(contents, &m)
-	if err != nil {
-		log.Println("Error decoding JSON for domain records: ", err)
-	}
+	initData.Add(1)
+	go func(dr DomainRecords) {
+		defer initData.Done()
+		recordListResp, err := httpReq("GET", "https://api.digitalocean.com/v2/domains/"+*domainName+"/records", nil)
+		if err != nil {
+			log.Println("Error getting domain records: ", err)
+		}
+		defer recordListResp.Body.Close()
+
+		contents, err := ioutil.ReadAll(recordListResp.Body)
+		if err != nil {
+			log.Println("Error reading response body for domain records: ", err)
+		}
+
+		err = json.Unmarshal(contents, &m)
+		if err != nil {
+			log.Println("Error decoding JSON for domain records: ", err)
+			os.Exit(1)
+		}
+	}(m)
+
+	initData.Wait()
 
 	subExistsResult, recordID := subExists(m.ExistingDomainRecords)
 	if subExistsResult {
@@ -98,6 +114,7 @@ func main() {
 		addResp, err := httpReq("POST", "https://api.digitalocean.com/v2/domains/"+*domainName+"/records", jsonStr)
 		if err != nil {
 			log.Println("Error adding subdomain record: ", err)
+			os.Exit(1)
 		}
 		defer addResp.Body.Close()
 		contents, err := ioutil.ReadAll(addResp.Body)
