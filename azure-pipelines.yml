@@ -37,9 +37,8 @@ steps:
   
 - script: |
     go test -v 
-    # yolo
-    echo "don't hack me bro $env:MAPPED_COVERALLS_KEY"
-    goveralls -service=travis-ci -repotoken '$env:MAPPED_COVERALLS_KEY'
+    echo "don't hack me bro $(COVERALLS_KEY)"
+    #goveralls -service=travis-ci -repotoken '$env:MAPPED_COVERALLS_KEY'
   continueOnError: 'true'
   workingDirectory: '$(modulePath)'
   displayName: 'Run unit tests'
