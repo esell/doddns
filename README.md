@@ -1,5 +1,4 @@
-[![Build Status](https://travis-ci.org/esell/doddns.svg?branch=master)](https://travis-ci.org/esell/doddns)
-[![Coverage Status](https://coveralls.io/repos/github/esell/doddns/badge.svg?branch=master)](https://coveralls.io/github/esell/doddns?branch=master)
+[![Build Status](https://rocktopus.visualstudio.com/doddns/_apis/build/status/doddns-CI?branchName=master)](https://rocktopus.visualstudio.com/doddns/_build/latest?definitionId=14&branchName=master)
 
 # doddns
 
