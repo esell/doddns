@@ -37,9 +37,12 @@ steps:
   
 - script: |
     go test -v 
+    goveralls -service=travis-ci -repotoken "$env:MAPPED_COVERALLS_KEY"
   continueOnError: 'true'
   workingDirectory: '$(modulePath)'
   displayName: 'Run unit tests'
+  env:
+    MAPPED_COVERALLS_KEY: $(COVERALLS_KEY)
   
 - script: |
     go build -v
