@@ -27,11 +27,10 @@ steps:
         curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
         dep ensure
     fi
+    go get github.com/jstemmer/go-junit-report
     go get github.com/axw/gocov/gocov
-    go get github.com/mattn/goveralls
-    if ! go get github.com/golang/tools/cmd/cover; then
-        go get golang.org/x/tools/cmd/cover
-    fi
+    go get github.com/AlekSi/gocov-xml
+    go get -u gopkg.in/matm/v1/gocov-html
   workingDirectory: '$(modulePath)'
   displayName: 'Get dependencies'
   
